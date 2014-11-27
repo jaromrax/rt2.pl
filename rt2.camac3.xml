@@ -1,0 +1,83 @@
+ <prescription>
+   <!-- threads> number of thread section/ devices controled  </threads -->
+   <threads> 2  </threads>
+   <!-- default_t> bit pattern for default thread/device on eg 0,1,3,7  </default_t -->
+   <!-- default_t> 3  </default_t-->
+   <status_text>  This WINDOW:  sends commands to camac3  </status_text>
+   <status_text_size> 10 </status_text_size>
+<!-- DICTIONARY: 
+     $runnumber      ........
+     $outfile        ........ 
+     $pidM           ........  this is the file. Last line is displayed in STATUS line
+     $setstatustext   .......
+     $killgrandchildren  ....   possible but deprecated - I use KillOnStop SFautostop
+at least echo must be there
+_SET_CFG  filepath
+_SWD      workingdirectory
+_RUNUM 1
+ -->
+   <thread>
+     <number>0</number>
+     <default_on>1 </default_on>
+     <name> StartStopCAMAC3  </name>
+     <namel> Backup CAMAC3 </namel>
+     <on_init>   
+        echo _RUNUM $runnumber |  nc6 --send-only camac3 9100;
+     </on_init>
+     <on_start>
+       echo _GOMON |  nc6 --send-only camac3 9100;
+       $setstatustext RUNNING RUN $runnumber
+     </on_start>
+     <on_stop>
+        echo _STOP  | nc6 --send-only camac3 9100;
+	$setstatustext STOPPED after RUN $runnumber
+    </on_stop>
+    <spec_function_onstart> 0</spec_function_onstart>
+    <spec_function_onstop>  0</spec_function_onstop>
+    <spec_function_retrig>  0</spec_function_retrig> 
+    <spec_function> 
+      echo 5 seconds to backup at 50kB/s;sleep 1;
+      echo 4;sleep 1;
+      echo 3;sleep 1;
+      echo 2;sleep 1;
+      echo 1;sleep 1;
+ rsync -avze ssh --progress --bwlimit=50 --exclude 'datafile.list' --exclude 'nwcamac.log'  camac3:/tmp/TEST/ /home/ojr/DATA/TEST/
+    </spec_function>
+     <quit>
+       echo q  | nc6 --send-only camac3 9100;
+     </quit>
+   </thread>
+<!-- end end end end end end end end end end end end -->
+
+
+<!-- begin begin begin begin begin begin begin begin begin  -->
+   <thread>
+     <number>1</number>
+     <name> nothing  </name>
+     <default_on>0 </default_on>
+     <namel> nothing </namel>
+     <on_init>
+       echo .
+     </on_init>
+     <on_start>
+       echo .
+     </on_start>
+     <on_stop>
+       echo .
+     </on_stop>
+<!-- SPECIAL CHARACTERS:    < and &        &lt; and &amp; -->
+    <spec_function_onstart>0</spec_function_onstart>
+    <spec_function_onstop>0</spec_function_onstop>
+     <spec_function_retrig> 0 </spec_function_retrig> 
+     <spec_function>   
+      echo .
+   </spec_function>
+     <quit>  
+       echo konec
+     </quit>
+   </thread>
+<!-- end end end end end end end end end end end end -->
+
+
+
+  </prescription>
