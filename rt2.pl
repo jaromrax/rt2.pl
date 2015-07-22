@@ -18,6 +18,7 @@
 #
 ##################################
 use Tk;
+
 use Time::HiRes qw( usleep ualarm gettimeofday tv_interval nanosleep
 		      clock_gettime clock_getres clock_nanosleep clock
                       stat );
@@ -38,14 +39,14 @@ use XML::LibXML;
 
 print "######################\n######################\nrt2.pl is still experimental\n######################\n######################\n";
 
-$xmllist=`ls *.xml $ENV{'HOME'}/*.xml`;
+$xmllist=`cd $ENV{'HOME'} ; ls  *.xml`;
 $xmllist=~s/\n/ /ig;
 print "",$xmllist,"\n";
 
 $FILEXML=`zenity --height 400 --list --column="rt2 configuration" $xmllist`;
 print "XML SELECTION: ",$FILEXML,"\n";
 if ($FILEXML eq ""){ die "ok, no selection taken, I die\n\n";}
-#$FILEXML=$ENV{'HOME'}."/$FILEXML";
+$FILEXML=$ENV{'HOME'}."/$FILEXML";
 chop($FILEXML);
 
 ##$FILEXML=`zenity --file-selection --file-filter='RT2 CONFIG) | *.xml' --file-filter='All files | *' --directory /home`;
@@ -61,7 +62,8 @@ if ($nc6exists==127){
 }
 print "nc version == $nc\n";
 
-
+############# to avoid multiple STOP inc runnumber.....
+ $STARTED=0;
 ################time 
 my $date;
 my $seconds=0;
@@ -102,7 +104,7 @@ print "MY XML IS     $MainXML    \n\n";
 my $LOG="startstop.log";
 my $online_ext="00000";
 my $comment="comment";
-my $runnumber="1";
+my $runnumber=1;
 
 my $entryLog;
 my $readoscilo_yn=0;
@@ -847,7 +849,9 @@ sub Log{
    &update_time;
    my $stamp="$date - $txt\n";
    if (defined $entryLog){
-       $entryLog->insert('1.0',"$stamp"); 
+       if ($auxi!=1){
+	   $entryLog->insert('1.0',"$stamp");
+       }
    }
   print "$stamp";
    if ($auxi==1){
@@ -1045,7 +1049,7 @@ sub INITbut{
 # access to checkboxes etc...
 #    for ($i=0;$i<$maxpids;$i++){print "   Thread_$i:$chk_cam[$i] "; }print "\n";
 
-}#GOMON..........................................
+}#INIT..........................................
 
 
 
@@ -1096,8 +1100,8 @@ sub STARTbut{
 
 # access to checkboxes etc...
 #    for ($i=0;$i<$maxpids;$i++){print "   Thread_$i:$chk_cam[$i] "; }print "\n";
-
-}#GOMON..........................................
+    $STARTED=1;
+}#STARTBUT GOMON..........................................
 
 
 
@@ -1279,7 +1283,10 @@ sub STOPbut{
     $b_gomon->configure(-background=>'white',-activebackground =>'white' );
     $b_stop->configure(-background=>'red',-activebackground =>'red');
 
-    $runnumber++;
+     if ( $STARTED == 1){
+	 $runnumber++;
+     }
+     $STARTED=0;
 }#STOP.............................................................
 
 
