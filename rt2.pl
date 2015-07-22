@@ -39,14 +39,15 @@ use XML::LibXML;
 
 print "######################\n######################\nrt2.pl is still experimental\n######################\n######################\n";
 
-$xmllist=`cd $ENV{'HOME'} ; ls  *.xml`;
+####$xmllist=`cd $ENV{'HOME'} ; ls  *.xml`;
+$xmllist=`ls  *.xml`;
 $xmllist=~s/\n/ /ig;
 print "",$xmllist,"\n";
 
 $FILEXML=`zenity --height 400 --list --column="rt2 configuration" $xmllist`;
 print "XML SELECTION: ",$FILEXML,"\n";
 if ($FILEXML eq ""){ die "ok, no selection taken, I die\n\n";}
-$FILEXML=$ENV{'HOME'}."/$FILEXML";
+##$FILEXML=$ENV{'HOME'}."/$FILEXML";
 chop($FILEXML);
 
 ##$FILEXML=`zenity --file-selection --file-filter='RT2 CONFIG) | *.xml' --file-filter='All files | *' --directory /home`;
