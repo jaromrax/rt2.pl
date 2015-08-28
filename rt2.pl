@@ -39,16 +39,30 @@ use XML::LibXML;
 
 print "######################\n######################\nrt2.pl is still experimental\n######################\n######################\n";
 
-####$xmllist=`cd $ENV{'HOME'} ; ls  *.xml`;
-$xmllist=`ls  *.xml`;
+$xmllist=`cd $ENV{'HOME'} ; ls  *.xml`;
+$xmllist2=` ls  *.xml`;
 $xmllist=~s/\n/ /ig;
+$xmllist2=~s/\n/ /ig;
+$xmllist.=$xmllist2;
 print "",$xmllist,"\n";
 
-$FILEXML=`zenity --height 400 --list --column="rt2 configuration" $xmllist`;
+if ( $ARGV[0]=~/\.xml$/ ){
+    $FILEXML=$ARGV[0];
+}else{
+
+    $FILEXML=`zenity --height 400 --list --column="rt2 configuration" $xmllist`;
+    chop($FILEXML);
+}
 print "XML SELECTION: ",$FILEXML,"\n";
 if ($FILEXML eq ""){ die "ok, no selection taken, I die\n\n";}
-##$FILEXML=$ENV{'HOME'}."/$FILEXML";
-chop($FILEXML);
+
+if (-e $FILEXML ){
+    print " $FILEXML exists in local dir\n";
+}else{
+    $FILEXML=$ENV{'HOME'}."/$FILEXML";
+    print " $FILEXML may exist in HOME dir\n";
+}
+
 
 ##$FILEXML=`zenity --file-selection --file-filter='RT2 CONFIG) | *.xml' --file-filter='All files | *' --directory /home`;
 ################### RUN programs
@@ -64,7 +78,7 @@ if ($nc6exists==127){
 print "nc version == $nc\n";
 
 ############# to avoid multiple STOP inc runnumber.....
- $STARTED=0;
+my $STARTED=0;
 ################time 
 my $date;
 my $seconds=0;
@@ -105,7 +119,7 @@ print "MY XML IS     $MainXML    \n\n";
 my $LOG="startstop.log";
 my $online_ext="00000";
 my $comment="comment";
-my $runnumber=1;
+my $runnumber=800;
 
 my $entryLog;
 my $readoscilo_yn=0;
@@ -542,7 +556,7 @@ $entry->pack(-side=>"left", -expand=>1, -fill=>"x", -ipadx=>0, -padx=>0, -pady=>
 
 ############# arabic way from right
 # ---------- entry field RUN NUM
-$entryRN= $menubar[$i]->Entry(-text => "textEntry", -textvariable => \$runnumber, -width=>5, -background=>'cyan', -foreground=>'black', -font=>'bold');
+$entryRN= $menubar[$i]->Entry(-text => "textEntry", -textvariable => \$runnumber, -width=>5, -background=>'white', -foreground=>'black', -font=>'bold');
 # 
 $entryRN->pack(-side=>"right", -expand=>0, -ipadx=>20, -padx=>0, -pady=>0);
 # ---------- entry field RUN NUM
@@ -1265,6 +1279,7 @@ sub STOPbut{
 	   $b_gomon->configure(-background=>'yellow',-activebackground =>'yellow');
 	   $b_stop->configure(-background=>'yellow',-activebackground =>'yellow');
 	   $b_gomoni->configure(-background=>'yellow',-activebackground =>'yellow' );
+	   print "#### returning early from stop \n";
 	   return;
        }
        $chk_cam_runs[$j]=0;# it runs (no)
@@ -1285,8 +1300,11 @@ sub STOPbut{
     $b_stop->configure(-background=>'red',-activebackground =>'red');
 
      if ( $STARTED == 1){
+	 print "#####RUNNUMBER  incremented";
 	 $runnumber++;
-     }
+     }else{
+	 print "#####RUNNUMBER NOT  incremented";
+}	 
      $STARTED=0;
 }#STOP.............................................................
 
