@@ -107,10 +107,16 @@ $MainXML=$FILEXML;
 print "MY XML IS     $MainXML    \n\n";
 ###exit;
 
-my $LOG="startstop.log";
+my $LOG="rt2.log";
 my $online_ext="00000";
 my $comment="comment";
-my $runnumber=850;
+
+my $runnumber=1;
+# last on disk ...
+$runnumber=`cat rt2.RUNNUMBER`; chop($runnumber);
+# brutaal override..........
+#$runnumber=850;
+
 
 my $entryLog;
 my $readoscilo_yn=0;
@@ -207,7 +213,7 @@ foreach my $thread ($doc->findnodes('/prescription/thread') ){
 	    $cmd=~s/\$outfile/$rrr/ge;          # internal translation
 	    $cmd=~s/\$pidM/$pid_fnameM/ge;            # internal translation
 
-	    $gwd0=`cat GWD_0`; chop($gwd0);
+	    $gwd0=`cat rt2.GWD_0`; chop($gwd0);
 	    $gwd0=~s/\/\/$/\//;   # remove  double // at end
 	    $cmd=~s/\$gwd0/$gwd0/ge;                      # internal translation
 	    $gwdlocal0=`basename $gwd0`;chop($gwdlocal0);
@@ -532,8 +538,8 @@ $i++;
 #########################################################################
  $menubar[$i]= $main->Frame(-relief=>"flat",  -borderwidth=>2, -background=>'black', -foreground=>'white');
 
-# ---------- entry field
-$entry= $menubar[$i]->Entry(-text => "textEntry", -textvariable => \$comment,
+# ---------- entry field ..... probable problem-text => "textEntry",
+$entry= $menubar[$i]->Entry( -textvariable => \$comment,
  -background=>'black', -foreground=>'white',
  -validate         => 'key',
  -validatecommand  => sub{&update_time;$last_comment=$date;} );
@@ -546,12 +552,12 @@ $entry->pack(-side=>"left", -expand=>1, -fill=>"x", -ipadx=>0, -padx=>0, -pady=>
 #    });
 
 ############# arabic way from right
-# ---------- entry field RUN NUM
-$entryRN= $menubar[$i]->Entry(-text => "textEntry", -textvariable => \$runnumber, -width=>5, -background=>'yellow', -foreground=>'black', -font=>'bold');
+# ---------- entry field RUN NUM   ......  text => , was a problem=fixing the displayed valeu
+$entryRN= $menubar[$i]->Entry( -textvariable => \$runnumber, -width=>4, -background=>'yellow', -foreground=>'black', -font=>'bold');
 # 
-$entryRN->pack(-side=>"right", -expand=>0, -ipadx=>20, -padx=>0, -pady=>0);
+$entryRN->pack(-side=>"right", -expand=>0, -ipadx=>0, -padx=>0, -pady=>0);
 # ---------- entry field RUN NUM
-$labelRN= $menubar[$i]->Label(-text => "RUN #",  -background=>'black', -foreground=>'cyan');
+$labelRN= $menubar[$i]->Label(-text => "RUN #",  -background=>'black', -foreground=>'yellow');
 # 
 $labelRN->pack(-side=>"right", -expand=>0, -ipadx=>0, -padx=>0, -pady=>0);
 
@@ -993,6 +999,8 @@ sub ActivateThread(){
     &Log( "   issuing S.F. activate to device [$j]: <$cmdline>",1);
 
     system("bash -c \"$cmdline\" ");
+    #system("$cmdline") or die print "NONONO \n";
+    
 
     &Log( "   #Stopping client [$j] #leaving ActiveThread # ...",1);
 }#Activate Thread
@@ -1016,7 +1024,7 @@ sub ActivateThread(){
 
 sub INITbut{
     my $immedstop=0;
-    &Log( "INIT#############################################\n           $comment" );
+    &Log( "INIT#############################################" );
     $b_gomon->configure(-background=>'lightgrey',-activebackground =>'lightgrey');
     $b_stop->configure(-background=>'lightgrey',-activebackground =>'lightgrey');
     $b_gomoni->configure(-background=>'lightgrey',-activebackground =>'lightgrey' );
@@ -1024,19 +1032,26 @@ sub INITbut{
  for ($j=0;$j<$maxpids;$j++){ 
   if ($chk_cam[$j]==1){
        my $cmdline=get_xml_data( $j, "on_init" , "translate" );
-       &Log( "   issuing   init to device [$j]: <$cmdline>");
-       system("bash -c \"$cmdline\" ");
+       &Log( "   issuing   init to device [$j]");
+#       &Log( "   issuing   init to device [$j]: <$cmdline>");
+#       my $retcode=system("bash -c \"$cmdline\" ") ;
+       my $retcode=system("$cmdline") ;
+       
 #
  #      print `bash -c \"$cmdline\"`;
 #      `echo $SETRUNCMD $runnumber | $nc $IP[$j]  $port_control ` ;
-       if ($?!=0){   
+       if ($retcode!=0){   
 	   &Log( "      NOT SUCCESFULL !!!!!!!!!!!!!!"); 
 	   $b_gomon->configure(-background=>'yellow',-activebackground =>'yellow');
 	   $b_stop->configure(-background=>'yellow',-activebackground =>'yellow');
-	   $b_gomoni->configure(-background=>'yellow',-activebackground =>'yellow' );
+	   $b_gomoni->configure(-background=>'yellow',-activebackground =>'yellow' ); 
+	   `echo $runnumber > rt2.RUNNUMBER`;
+
 	   return;
        }
-      &Log( "      finished   init to device [$j]");
+       &Log( "      finished   init to device [$j]");
+       `echo $runnumber > rt2.RUNNUMBER`;
+
   }
  }
 #NOT HERE    if ($autolisten==1){    &Listenbut(-1);}
@@ -1062,7 +1077,8 @@ sub INITbut{
 sub STARTbut{
     my $immedstop=0;
 #    &Log( "START#############################################\n$last_comment  $comment" );
-    &Log( "START#############################################\nRUN $runnumber\n$last_comment  $comment" );
+    &Log( "START#############################################");
+    &Log( "RUN $runnumber\n$last_comment  $comment" );
     #SPECIAL TIME FOR LAST CHANGE IN COMMENT!  $last_comment
     $last_seconds=$seconds;  $last_number=$number;
 
@@ -1071,7 +1087,8 @@ sub STARTbut{
  for ($j=0;$j<$maxpids;$j++){ 
   if ($chk_cam[$j]==1){
        my $cmdline=get_xml_data( $j, "on_start" , "translate" );
-      &Log( "   issuing  start to device [$j]: <$cmdline>");
+      &Log( "   issuing  start to device [$i]");
+#      &Log( "   issuing  start to device [$j]: <$cmdline>");
        system("bash -c \"$cmdline\" ");
 #       print `bash -c \"$cmdline\"`;
 
@@ -1222,7 +1239,8 @@ sub Qbut{
   for ($j=0;$j<$maxpids;$j++){ 
   if ($chk_cam[$j]==1){
        my $cmdline=get_xml_data( $j, "quit" , "translate" );
-       &Log( "   issuing   quit to device [$j]: <$cmdline>");
+       &Log( "   issuing   quit to device [$j]");
+#       &Log( "   issuing   quit to device [$j]: <$cmdline>");
        system("bash -c \"$cmdline\" ");
 #       print `bash -c \"$cmdline\"`;
 
@@ -1249,7 +1267,8 @@ sub STOPbut{
  for ($j=0;$j<$maxpids;$j++){ 
   if ($chk_cam[$j]==1){# thread is active
        my $cmdline=get_xml_data( $j, "on_stop" , "translate" );
-      &Log( "   issuing   stop to device [$j]: <$cmdline>");
+      &Log( "   issuing   stop to device [$j]");
+#      &Log( "   issuing   stop to device [$j]: <$cmdline>");
 
        # there could be also killgrandchildren command inside
        # but preferably I use rather KillOnStop now......
@@ -1293,6 +1312,7 @@ sub STOPbut{
      if ( $STARTED == 1){
 	 print "#####RUNNUMBER  incremented";
 	 $runnumber++;
+	 `echo $runnumber > rt2.RUNNUMBER`;
      }else{
 	 print "#####RUNNUMBER NOT  incremented";
 }	 
