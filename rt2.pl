@@ -23,6 +23,7 @@ use Time::HiRes qw( usleep ualarm gettimeofday tv_interval nanosleep
 		      clock_gettime clock_getres clock_nanosleep clock
                       stat );
 use XML::LibXML;
+require Tk::Balloon;
 #
 #   new   nc6   needs  nc6 -q1  to be compatible with nc ???
 #       seems to 
@@ -40,28 +41,18 @@ use XML::LibXML;
 print "######################\n######################\nrt2.pl is still experimental\n######################\n######################\n";
 
 $xmllist=`cd $ENV{'HOME'} ; ls  *.xml`;
-$xmllist2=` ls  *.xml`;
 $xmllist=~s/\n/ /ig;
-$xmllist2=~s/\n/ /ig;
-$xmllist.=$xmllist2;
 print "",$xmllist,"\n";
 
 if ( $ARGV[0]=~/\.xml$/ ){
     $FILEXML=$ARGV[0];
 }else{
-
     $FILEXML=`zenity --height 400 --list --column="rt2 configuration" $xmllist`;
     chop($FILEXML);
 }
-print "XML SELECTION: ",$FILEXML,"\n";
+print "XML SELECTION: =====",$FILEXML,"=====\n";
 if ($FILEXML eq ""){ die "ok, no selection taken, I die\n\n";}
-
-if (-e $FILEXML ){
-    print " $FILEXML exists in local dir\n";
-}else{
-    $FILEXML=$ENV{'HOME'}."/$FILEXML";
-    print " $FILEXML may exist in HOME dir\n";
-}
+$FILEXML=$ENV{'HOME'}."/$FILEXML";
 
 
 ##$FILEXML=`zenity --file-selection --file-filter='RT2 CONFIG) | *.xml' --file-filter='All files | *' --directory /home`;
@@ -77,7 +68,7 @@ if ($nc6exists==127){
 }
 print "nc version == $nc\n";
 
-############# to avoid multiple STOP inc runnumber.....
+############# to avoid multiple STOP inc runnuber.....
 my $STARTED=0;
 ################time 
 my $date;
@@ -119,7 +110,7 @@ print "MY XML IS     $MainXML    \n\n";
 my $LOG="startstop.log";
 my $online_ext="00000";
 my $comment="comment";
-my $runnumber=800;
+my $runnumber=850;
 
 my $entryLog;
 my $readoscilo_yn=0;
@@ -556,7 +547,7 @@ $entry->pack(-side=>"left", -expand=>1, -fill=>"x", -ipadx=>0, -padx=>0, -pady=>
 
 ############# arabic way from right
 # ---------- entry field RUN NUM
-$entryRN= $menubar[$i]->Entry(-text => "textEntry", -textvariable => \$runnumber, -width=>5, -background=>'white', -foreground=>'black', -font=>'bold');
+$entryRN= $menubar[$i]->Entry(-text => "textEntry", -textvariable => \$runnumber, -width=>5, -background=>'yellow', -foreground=>'black', -font=>'bold');
 # 
 $entryRN->pack(-side=>"right", -expand=>0, -ipadx=>20, -padx=>0, -pady=>0);
 # ---------- entry field RUN NUM

@@ -22,18 +22,21 @@ _RUNUM 1
      <name> StartStopCAMAC6  </name>
      <namel> Backup CAMAC6 </namel>
      <on_init>   
-        echo _RUNUM $runnumber |  nc6 --send-only camac6 9100;
+       echo _RUNUM $runnumber |  nc6 --send-only camac6 9100;
+       if [ "$?" != "0" ]; then echo KURNI;exit 7;fi;
 	echo _GWD |  nc6 --half-close camac6 9100 | tail -1 > GWD_0; 
-	$setstatustext remote $gwd0 local $gwdlocal0
+	$setstatustext remote= $gwd0 local= $gwdlocal0
 	echo  .. creating  /home/ojr/DATA/NASTRO/`cat GWD_0 | xargs basename`/;
         mkdir -p  /home/ojr/DATA/NASTRO/`cat GWD_0 | xargs basename`/ ;
      </on_init>
      <on_start>
        echo _GOMON |  nc6 --send-only camac6 9100;
+       if [ "$?" != "0" ]; then exit 1;
        $setstatustext RUNNING RUN $runnumber
      </on_start>
      <on_stop>
         echo _STOP  | nc6 --send-only camac6 9100;
+       if [ "$?" != "0" ]; then exit 1;
 	$setstatustext STOPPED after RUN $runnumber
     </on_stop>
     <spec_function_onstart> 1</spec_function_onstart>
