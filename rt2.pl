@@ -18,7 +18,7 @@
 #
 ##################################
 use Tk;
-
+use POSIX;
 use Time::HiRes qw( usleep ualarm gettimeofday tv_interval nanosleep
 		      clock_gettime clock_getres clock_nanosleep clock
                       stat );
@@ -796,10 +796,27 @@ $menubar[$i]->pack(-side=>"top", -expand=>0,
     -padx=>0, -pady=>0, -fill=>"both");
 }
 
+###########################
+#  this is a way howto start and stop remotely
+#
+#
+$mycurrentpid=$$;
+print("My Signal PID = ",$mycurrentpid,"\n");
+`echo $mycurrentpid > ~/rt2.PID`;
+sub signal_handler1 {    print( "Caught a signal1 : $!  -  not dying.... \n" ); &STARTbut(); }
+sub signal_handler2 {    print( "Caught a signal2 : $!  -  not dying.... \n" ); &STOPbut(); }
 
+my $sigset1 = POSIX::SigSet->new(&POSIX::SIGUSR1);
+my $sigset2 = POSIX::SigSet->new(&POSIX::SIGUSR2);
+my $action1 = POSIX::SigAction->new(\&signal_handler1, $sigset1, &POSIX::SA_SIGINFO);
+my $action2 = POSIX::SigAction->new(\&signal_handler2, $sigset2, &POSIX::SA_SIGINFO);
+POSIX::sigaction(&POSIX::SIGUSR1, $action1);
+POSIX::sigaction(&POSIX::SIGUSR2, $action2);
 
-
-
+#$SIG{INT}  = \&signal_handler;
+#$SIG{TERM} = \&signal_handler;
+#$SIG{SIGUSR1}  = \&signal_handler;
+#$SIG{SIGUSR2} = \&signal_handler;
 
 #my $c = $main->Canvas(-width => 660, -height => 480);
 #$c->pack;
