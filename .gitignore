@@ -17,3 +17,9 @@ nytprof.out
 /pm_to_blib
 *.o
 *.bs
+*~
+*.aux
+*.log
+rt2.PID
+rt2.RUNNUMBER
+rt2_net.pl
