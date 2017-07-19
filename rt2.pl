@@ -6,6 +6,8 @@
 #      http://hell.org.ua/Docs/oreilly/perl3/tk/index.htm
 #  aptitude install perl-tk
 #  aptitude install libxml-libxml-perl
+#  sudo cpan
+#      install Sys::Mmap
 ###################################
 #
 # rt2.pl   experimental
@@ -20,8 +22,11 @@
 use Tk;
 use POSIX;
 use Time::HiRes qw( usleep ualarm gettimeofday tv_interval nanosleep
-		      clock_gettime clock_getres clock_nanosleep clock
-                      stat );
+		      clock_gettime clock_getres clock_nanosleep 
+                      stat );    
+# i want to use .mmap1.vme ALSO
+use Sys::Mmap;
+
 use XML::LibXML;
 require Tk::Balloon;
 #
@@ -40,6 +45,24 @@ require Tk::Balloon;
 
 print "######################\n######################\nrt2.pl is still experimental\n######################\n######################\n";
 
+$gregory_dir=$ENV{"GREGORY"};
+if ($gregory_dir ne ""){
+    print("i... GREGORY found\n");
+}#else{    print("i... gregory NOT FOUND\n");}
+
+
+$mmapfile=".mmap.1.vme";
+if (length($mmapfile)>0){ $mmapfile=$gregory_dir."/".$mmapfile;}
+print("i... mmap should be:  ",$mmapfile,"\n");
+
+if (-e $mmapfile) {
+open (my $fh, "+<:mmap",$mmapfile) || die "x... no open mmap file ".$mmapfile."\n";
+mmap($mmapvar,4096, PROT_READ|PROT_WRITE , MAP_SHARED, $fh );
+print("read1= ",$mmapvar,"\n");
+substr($mmapvar, 0, 11+3) = "Hello world\0\0\0";
+print("read2= ",$mmapvar,"\n");
+}
+#exit();
 $xmllist=`cd $ENV{'HOME'} ; ls  *.xml`;
 $xmllist=~s/\n/ /ig;
 print "",$xmllist,"\n";
@@ -1046,6 +1069,15 @@ sub INITbut{
     $b_stop->configure(-background=>'lightgrey',-activebackground =>'lightgrey');
     $b_gomoni->configure(-background=>'lightgrey',-activebackground =>'lightgrey' );
     $last_seconds=$seconds;  $last_number=$number;
+
+    
+    #====================== IF mmap file===============
+    if (-e $mmapfile) {
+	print("read1= ",$mmapvar,"\n");
+	substr($mmapvar, 0, 11+3) = "init  world\0\0\0";
+	print("read2= ",$mmapvar,"\n");
+    }
+    
  for ($j=0;$j<$maxpids;$j++){ 
   if ($chk_cam[$j]==1){
        my $cmdline=get_xml_data( $j, "on_init" , "translate" );
@@ -1099,6 +1131,12 @@ sub STARTbut{
     #SPECIAL TIME FOR LAST CHANGE IN COMMENT!  $last_comment
     $last_seconds=$seconds;  $last_number=$number;
 
+    #====================== IF mmap file===============
+    if (-e $mmapfile) {
+	print("read1= ",$mmapvar,"\n");
+	substr($mmapvar, 0, 11+3) = "start world\0\0\0";
+	print("read2= ",$mmapvar,"\n");
+    }
 ############ $labelT2->configure( -text => ""  );### we can change the status text
 
  for ($j=0;$j<$maxpids;$j++){ 
@@ -1280,6 +1318,13 @@ sub STOPbut{
        &Log( "$t seconds length to this point BUT NO START pressed " );
      }
     &Log( "waiting to finish kills, sleep 0 seconds");
+
+    #====================== IF mmap file===============
+    if (-e $mmapfile) {
+	print("read1= ",$mmapvar,"\n");
+	substr($mmapvar, 0, 11+3) = "STOP  world\0\0\0";
+	print("read2= ",$mmapvar,"\n");
+    }
 
  for ($j=0;$j<$maxpids;$j++){ 
   if ($chk_cam[$j]==1){# thread is active
